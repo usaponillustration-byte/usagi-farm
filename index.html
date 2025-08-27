@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>WebAR牧場</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin: 2em; }
+    #farm { display: flex; flex-wrap: wrap; gap: 1em; justify-content: center; }
+    .card { border: 2px solid #ccc; border-radius: 12px; padding: 1em; width: 150px; }
+    .card button { margin-top: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>🐇 わたしの牧場</h1>
+  <p>QRコードを読み込むと、うさぎが牧場に増えます！</p>
+
+  <div id="farm"></div>
+
+  <script>
+    // --- コレクション保存 ---
+    const params = new URLSearchParams(location.search);
+    const src = params.get("src");
+    const name = params.get("name") || "うさぎ";
+
+    if (src) {
+      let collection = JSON.parse(localStorage.getItem("farm") || "[]");
+      // 重複チェック
+      if (!collection.find(item => item.src === src)) {
+        collection.push({src, name});
+        localStorage.setItem("farm", JSON.stringify(collection));
+      }
+    }
+
+    // --- 表示 ---
+    const farm = document.getElementById("farm");
+    const collection = JSON.parse(localStorage.getItem("farm") || "[]");
+    collection.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <p>${item.name}</p>
+        <model-viewer src="${item.src}" ar ar-modes="scene-viewer quick-look webxr"
+          camera-controls auto-rotate style="width:100%; height:150px;">
+        </model-viewer>
+        <button onclick="openAR('${item.src}')">ARで呼ぶ</button>
+      `;
+      farm.appendChild(card);
+    });
+
+    function openAR(src) {
+      // 単純にモデルだけを開く
+      window.location.href = src;
+    }
+  </script>
+</body>
+</html>
